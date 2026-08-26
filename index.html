@@ -179,8 +179,8 @@
       <div class="bar-title" aria-hidden="true">Simfoni Waktu</div>
     </div>
     <nav aria-label="Status dan kontrol">
-      <button class="btn secondary" id="btn-profile" aria-label="Profil VIP">Profil</button>
-      <button class="btn" id="btn-enter" aria-label="Masuk ruang VIP">Masuk Ruang VIP</button>
+      <button type="button" class="btn secondary" id="btn-profile" aria-label="Profil VIP">Profil</button>
+      <button type="button" class="btn" id="btn-enter" aria-label="Masuk ruang VIP">Masuk Ruang VIP</button>
     </nav>
   </header>
 
@@ -199,7 +199,7 @@
           </div>
 
           <div class="actions" style="margin-top:18px">
-            <button class="btn" id="start-btn">Mulai Permainan</button>
+            <button type="button" class="btn" id="start-btn">Mulai Permainan</button>
             <a href="#rules" class="btn secondary">Aturan Singkat</a>
           </div>
 
@@ -226,6 +226,7 @@
        - Lightweight matrix canvas (mobile-friendly)
        - Simulated music visualizer (lightweight, no audio input required)
        - Basic keyboard focus behavior
+       - Fixed start button debouncing and XP calculation
        ========================================================================== */
 
     (function(){
@@ -258,9 +259,11 @@
 
       // --- keyboard focus: ensure keyboard users can tab to the primary button quickly ---
       const enterBtn = document.getElementById('btn-enter');
-      enterBtn.addEventListener('click', () => {
-        document.getElementById('start-btn').focus();
-      });
+      if(enterBtn){
+        enterBtn.addEventListener('click', () => {
+          document.getElementById('start-btn').focus();
+        });
+      }
 
       // --- lightweight matrix canvas ---
       const canvas = document.getElementById('mobile-matrix-canvas');
@@ -374,14 +377,55 @@
 
       // --- small UX: keyboard for Start -->
       const startBtn = document.getElementById('start-btn');
-      startBtn.addEventListener('click', () => {
-        startBtn.setAttribute('aria-pressed','true');
-        // sample interaction: flash xp bar, show a toast (simple)
-        const xp = document.querySelector('.xp-bar');
-        xp.style.width = Math.min(100, (parseInt(xp.style.width) || 40) + 12) + '%';
-        startBtn.textContent = 'Memulai...';
-        setTimeout(()=> startBtn.textContent = 'Mulai Permainan', 1200);
-      });
+      const xpBar = document.querySelector('.xp-bar');
+      let starting = false;
+
+      function getXpPercent(){
+        try{
+          const parent = xpBar.parentElement;
+          const parentW = parent.getBoundingClientRect().width || parent.offsetWidth;
+          const barW = parseFloat(getComputedStyle(xpBar).width) || 0;
+          const percent = (parentW > 0) ? (barW / parentW) * 100 : 0;
+          return percent;
+        }catch(e){
+          // fallback to inline style (e.g. "40%")
+          const inline = xpBar.style.width || '40%';
+          return parseFloat(inline);
+        }
+      }
+
+      function increaseXp(byPercent){
+        const cur = getXpPercent();
+        const next = Math.min(100, cur + byPercent);
+        xpBar.style.width = next + '%';
+      }
+
+      if(startBtn){
+        // prevent double/triple clicks; debounced behavior
+        startBtn.addEventListener('click', (e)=>{
+          if(starting) return; // already starting
+          starting = true;
+          startBtn.disabled = true;
+          startBtn.setAttribute('aria-pressed','true');
+
+          // increment XP by 12% per start
+          increaseXp(12);
+
+          // visual feedback
+          const prevText = startBtn.textContent;
+          startBtn.textContent = 'Memulai...';
+
+          // short simulated action
+          setTimeout(()=>{
+            startBtn.textContent = prevText;
+            startBtn.disabled = false;
+            starting = false;
+          }, 1200);
+        });
+
+        // avoid double-firing on pointerdown + click on some devices
+        startBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); startBtn.click(); });
+      }
 
       // ensure focus outlines for keyboard users
       document.body.addEventListener('keydown', (e) => {
