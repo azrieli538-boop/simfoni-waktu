@@ -46,7 +46,7 @@
 
     /* CUSTOM CURSOR (desktop only) */
     .custom-cursor, .custom-cursor-outline{
-      position:fixed; top:0; left:0; transform:translate(-50%,-50%); pointer-events:none; transition:transform .08s linear, width .18s, height .18s, background-color .18s, border-color .18s; mix-blend-mode:difference; z-index:10010; opacity:0;
+      position:fixed; top:0; left:0; transform:translate(-50%,-50%); pointer-events:none; transition:transform .08s linear, width .18s, height .18s, background-color .18s, border-color .18s; mix-b[...]
     }
     .custom-cursor{ width:8px; height:8px; background:var(--neon-a); border-radius:50%; }
     .custom-cursor-outline{ width:32px; height:32px; border:1.5px solid rgba(0,242,254,0.45); border-radius:50%; background:transparent; }
@@ -73,7 +73,7 @@
     }
     .left-bar{ display:flex; align-items:center; gap:12px; min-width:0 }
     .level-badge{
-      background:linear-gradient(135deg,#eab308,#ca8a04); color:#020306; font-weight:900; padding:6px 12px; border-radius:999px; font-size:.72rem; text-transform:uppercase; box-shadow:0 0 12px rgba(234,179,8,0.35);
+      background:linear-gradient(135deg,#eab308,#ca8a04); color:#020306; font-weight:900; padding:6px 12px; border-radius:999px; font-size:.72rem; text-transform:uppercase; box-shadow:0 0 12px rgb[...]
     }
     .xp-container{ width:45%; background:#010204; height:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); overflow:hidden; position:relative; margin:0 8px }
     .xp-bar{ width:40%; height:100%; background:linear-gradient(90deg,var(--neon-a),var(--neon-b)); box-shadow:0 0 8px rgba(0,242,254,0.18); transition:width .6s cubic-bezier(.22,1,.36,1) }
@@ -141,6 +141,10 @@
     .bars{ display:flex; gap:6px; align-items:end; height:36px; }
     .bar{ width:6px; background:linear-gradient(180deg,var(--neon-b),var(--neon-a)); border-radius:4px; height:8px; transition:height .12s ease; will-change:height }
     .audio-label{ color:#94a3b8; font-weight:700; font-size:.86rem; margin-left:6px }
+
+    /* GAME SCREEN */
+    .game-screen{ display:none; min-height:calc(100vh - 85px); align-items:center; justify-content:center; text-align:center; padding:28px; gap:16px; flex-direction:column }
+    .game-screen.enabled{ display:flex }
 
     /* FOOTER */
     footer{ margin-top:28px; color:#9ca3af; font-size:.9rem; text-align:center }
@@ -213,6 +217,15 @@
         <div class="audio-label">Ambient • VIP Lounge</div>
       </div>
 
+      <!-- GAME SCREEN: ditampilkan setelah pemain menekan Mulai -->
+      <section id="game-screen" class="game-screen" role="region" aria-label="Layar permainan">
+        <h2 id="game-title">Permainan Dimulai 🎮</h2>
+        <p id="game-welcome">Selamat datang di permainan — nikmati tantangan persahabatan!</p>
+        <div style="margin-top:18px">
+          <button id="quit-btn" class="btn secondary">Keluar ke Beranda</button>
+        </div>
+      </section>
+
       <footer>
         Dibuat dengan neon oleh Geng Sekolah • Hak akses VIP
       </footer>
@@ -227,6 +240,7 @@
        - Simulated music visualizer (lightweight, no audio input required)
        - Basic keyboard focus behavior
        - Fixed start button debouncing and XP calculation
+       - Persistent start-flow: transition to #game-screen and avoid repeated prompts
        ========================================================================== */
 
     (function(){
@@ -379,6 +393,7 @@
       const startBtn = document.getElementById('start-btn');
       const xpBar = document.querySelector('.xp-bar');
       let starting = false;
+      let startedPermanent = false; // once true, the game screen is shown until user quits
 
       function getXpPercent(){
         try{
@@ -403,7 +418,7 @@
       if(startBtn){
         // prevent double/triple clicks; debounced behavior
         startBtn.addEventListener('click', (e)=>{
-          if(starting) return; // already starting
+          if(starting || startedPermanent) return; // already starting or already started
           starting = true;
           startBtn.disabled = true;
           startBtn.setAttribute('aria-pressed','true');
@@ -415,16 +430,49 @@
           const prevText = startBtn.textContent;
           startBtn.textContent = 'Memulai...';
 
-          // short simulated action
+          // short simulated action => then transition to game screen
           setTimeout(()=>{
+            // transisi ke layar permainan (permanen sampai pemain keluar)
+            const main = document.querySelector('.main-content');
+            const game = document.getElementById('game-screen');
+            if(main && game){
+              main.style.display = 'none';
+              game.classList.add('enabled');
+              game.style.display = 'flex';
+              // fokus ke judul permainan untuk aksesibilitas
+              const title = document.getElementById('game-title');
+              if(title) title.focus?.();
+            }
+
+            // tandai sebagai sudah dimulai
+            startedPermanent = true;
+            // jangan kembalikan starting ke false agar tidak minta ulang secara tidak sengaja
             startBtn.textContent = prevText;
-            startBtn.disabled = false;
+            // keep the start button disabled while game is running
+            startBtn.disabled = true;
             starting = false;
-          }, 1200);
+          }, 900);
         });
 
-        // avoid double-firing on pointerdown + click on some devices
-        startBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); startBtn.click(); });
+        // NOTE: removed pointerdown handler that programmatically called click() to avoid double-firing on some devices
+        // earlier code: startBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); startBtn.click(); });
+      }
+
+      // Quit button returns to the main screen and allows restarting
+      const quitBtn = document.getElementById('quit-btn');
+      if(quitBtn){
+        quitBtn.addEventListener('click', ()=>{
+          const main = document.querySelector('.main-content');
+          const game = document.getElementById('game-screen');
+          if(main && game){
+            game.classList.remove('enabled');
+            game.style.display = 'none';
+            main.style.display = 'flex';
+            // allow restarting
+            startedPermanent = false;
+            if(startBtn){ startBtn.disabled = false; startBtn.focus(); }
+          }
+        });
       }
 
       // ensure focus outlines for keyboard users
