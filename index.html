@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+  <meta name="description" content="Simfoni Waktu: Game interaktif persahabatan eksklusif tingkat premium dan VIP untuk Azriel, Fikri, Abid, dan Arfa." />
+  <title>Simfoni Waktu: Ruang VIP Geng Sekolah</title>
+  <style>
+    /* ==========================================================================
+       RESET & KONTROL GLOBAL (DISESUAIKAN UNTUK AKSESIBILITAS & PERFORMA)
+       ========================================================================== */
+    :root{
+      --bg:#010204;
+      --neon-a:#00f2fe;
+      --neon-b:#7c3aed;
+      --muted:#0f172a;
+      --card-bg: rgba(255,255,255,0.98);
+      --glass: rgba(1,2,4,0.85);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      min-height:100vh;
+      background:var(--bg);
+      color:#f8fafc;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* MATTERS: do NOT disable text selection globally — use .no-select where needed */
+    .no-select{ user-select:none; -webkit-user-select:none; -ms-user-select:none; -moz-user-select:none; }
+
+    /* BACKDROP AURORA LAYER */
+    .aurora-bg{
+      position:fixed; inset:0;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(0,242,254,0.12) 0%, transparent 55%),
+        radial-gradient(circle at 88% 82%, rgba(124,58,237,0.12) 0%, transparent 55%);
+      z-index:0; pointer-events:none;
+    }
+
+    /* MATRIX CANVAS (LIGHTWEIGHT) */
+    #mobile-matrix-canvas{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.32; will-change:transform; }
+
+    /* CUSTOM CURSOR (desktop only) */
+    .custom-cursor, .custom-cursor-outline{
+      position:fixed; top:0; left:0; transform:translate(-50%,-50%); pointer-events:none; transition:transform .08s linear, width .18s, height .18s, background-color .18s, border-color .18s; mix-blend-mode:difference; z-index:10010; opacity:0;
+    }
+    .custom-cursor{ width:8px; height:8px; background:var(--neon-a); border-radius:50%; }
+    .custom-cursor-outline{ width:32px; height:32px; border:1.5px solid rgba(0,242,254,0.45); border-radius:50%; background:transparent; }
+    body.cursor-active .custom-cursor, body.cursor-active .custom-cursor-outline{ opacity:1; }
+    body.hovering .custom-cursor{ width:4px; height:4px; background:var(--neon-b); }
+    body.hovering .custom-cursor-outline{ width:44px; height:44px; border-color:var(--neon-b); background:rgba(124,58,237,0.07); }
+
+    /* HIDE system cursor on desktop for effect */
+    @media (min-width:769px){
+      body{ cursor:none; }
+    }
+    @media (max-width:768px){
+      .custom-cursor, .custom-cursor-outline{ display:none !important; }
+    }
+
+    /* WRAPPER KONTEN UTAMA */
+    .scroller{ position:relative; z-index:2; padding-top:85px; padding-bottom:70px; }
+
+    /* VIP STATUS BAR */
+    .vip-status-bar{
+      position:fixed; top:0; left:0; width:100%; z-index:999; display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; background:var(--glass); border-bottom:1px solid rgba(0,242,254,0.2);
+      backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 8px 24px rgba(0,0,0,0.6);
+    }
+    .left-bar{ display:flex; align-items:center; gap:12px; min-width:0 }
+    .level-badge{
+      background:linear-gradient(135deg,#eab308,#ca8a04); color:#020306; font-weight:900; padding:6px 12px; border-radius:999px; font-size:.72rem; text-transform:uppercase; box-shadow:0 0 12px rgba(234,179,8,0.35);
+    }
+    .xp-container{ width:45%; background:#010204; height:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); overflow:hidden; position:relative; margin:0 8px }
+    .xp-bar{ width:40%; height:100%; background:linear-gradient(90deg,var(--neon-a),var(--neon-b)); box-shadow:0 0 8px rgba(0,242,254,0.18); transition:width .6s cubic-bezier(.22,1,.36,1) }
+    .bar-title{ font-weight:900; font-size:.78rem; color:var(--neon-a); letter-spacing:.4px; text-shadow:0 0 8px rgba(0,242,254,.22) }
+
+    /* HERO */
+    .main-content{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 85px); padding:18px 16px; text-align:center; gap:18px }
+    h1{
+      color:#fff; font-size:2.4rem; margin-bottom:8px; font-weight:900; line-height:1.05; letter-spacing:-0.6px; position:relative;
+      animation:textGlowFloat 4s ease-in-out infinite alternate, cyberGlitch 6s steps(2,start) infinite;
+      will-change:transform,text-shadow;
+    }
+    @media (min-width:769px){ h1{ font-size:3.6rem } }
+
+    @keyframes textGlowFloat{ 0%{ transform:translateY(0) } 100%{ transform:translateY(-4px) } }
+    @keyframes cyberGlitch{
+      0%,92%,100%{ text-shadow:0 0 18px rgba(0,242,254,.36) }
+      93%{ text-shadow:-2px -2px 0 #ff0055, 2px 2px 0 var(--neon-a); color:#cbd5e1 }
+      95%{ text-shadow:3px -1px 0 var(--neon-b), -2px 2px 0 #eab308 }
+      98%{ text-shadow:-3px 2px 0 #ff0055, 3px -2px 0 var(--neon-a) }
+    }
+
+    .highlight{
+      color:var(--neon-a);
+      display:inline-block;
+      background:linear-gradient(to right,var(--neon-a),var(--neon-b));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      border-right:2px solid var(--neon-a); padding-right:6px; white-space:nowrap; animation:blink .75s step-end infinite;
+    }
+    @keyframes blink{ from,to{ border-color:transparent } 50%{ border-color:var(--neon-a) } }
+
+    /* QUOTE CARD */
+    .quote-card-wrapper{
+      position:relative; max-width:720px; width:100%; padding:2px; border-radius:28px;
+      background:linear-gradient(135deg, rgba(0,242,254,0.22), rgba(124,58,237,0.22)); box-shadow:0 28px 60px rgba(0,0,0,.7);
+      transition:transform .35s ease;
+    }
+    .quote-card-wrapper:hover{ transform:translateY(-6px) }
+    .quote-card{
+      background:var(--card-bg); padding:36px 22px; border-radius:26px; color:var(--muted);
+    }
+    .quote-card p{ font-size:1.06rem; line-height:1.95; font-style:italic; }
+    @media (min-width:769px){ .quote-card{ padding:52px 46px } .quote-card p{ font-size:1.25rem } }
+
+    .karakter-link{
+      color:#0369a1; font-weight:800; background:rgba(56,189,248,0.08); padding:4px 8px; border-radius:6px; text-decoration:none; display:inline-block; margin-top:8px;
+      transition:transform .12s ease, background-color .18s;
+    }
+    .karakter-link:active{ transform:scale(.96); background:var(--neon-a); color:#020306 }
+
+    /* BUTTONS */
+    .actions{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:6px }
+    .btn{
+      background:linear-gradient(135deg,var(--neon-a),var(--neon-b)); color:#fff; font-weight:800; padding:14px 28px; border-radius:999px; border:none; cursor:pointer;
+      box-shadow:0 0 26px rgba(0,242,254,.18); transition:transform .12s cubic-bezier(.22,1,.36,1), box-shadow .18s;
+      text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
+    }
+    .btn:active{ transform:scale(.96); box-shadow:0 0 10px rgba(0,242,254,.08) }
+    .btn.secondary{ background:transparent; border:1px solid rgba(255,255,255,.06); color:#cbd5e1; box-shadow:none }
+
+    /* MUSIC VISUALIZER (SIMULATED LIGHTWEIGHT) */
+    .music-widget{
+      display:flex; align-items:center; gap:10px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.06); padding:10px 16px; border-radius:999px;
+    }
+    .bars{ display:flex; gap:6px; align-items:end; height:36px; }
+    .bar{ width:6px; background:linear-gradient(180deg,var(--neon-b),var(--neon-a)); border-radius:4px; height:8px; transition:height .12s ease; will-change:height }
+    .audio-label{ color:#94a3b8; font-weight:700; font-size:.86rem; margin-left:6px }
+
+    /* FOOTER */
+    footer{ margin-top:28px; color:#9ca3af; font-size:.9rem; text-align:center }
+
+    /* FOCUS ACCESSIBILITY */
+    :focus{ outline: none; }
+    :focus-visible{ outline:3px solid rgba(0,242,254,0.92); outline-offset:3px; border-radius:8px }
+
+    /* REDUCED MOTION */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation:none !important; transition:none !important }
+    }
+
+    /* SMALL LAYOUT TWEAKS */
+    @media (max-width:460px){
+      .xp-container{ display:none }
+      .quote-card{ padding:24px }
+      h1{ font-size:1.6rem }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora-bg" aria-hidden="true"></div>
+  <canvas id="mobile-matrix-canvas" aria-hidden="true"></canvas>
+
+  <!-- custom cursor elements -->
+  <div class="custom-cursor-outline" aria-hidden="true"></div>
+  <div class="custom-cursor" aria-hidden="true"></div>
+
+  <header class="vip-status-bar" role="banner">
+    <div class="left-bar">
+      <div class="level-badge" aria-hidden="false">VIP</div>
+      <div class="xp-container" aria-hidden="true" title="XP progress">
+        <div class="xp-bar" style="width:40%"></div>
+      </div>
+      <div class="bar-title" aria-hidden="true">Simfoni Waktu</div>
+    </div>
+    <nav aria-label="Status dan kontrol">
+      <button class="btn secondary" id="btn-profile" aria-label="Profil VIP">Profil</button>
+      <button class="btn" id="btn-enter" aria-label="Masuk ruang VIP">Masuk Ruang VIP</button>
+    </nav>
+  </header>
+
+  <main class="scroller" role="main">
+    <section class="main-content" aria-labelledby="hero-title">
+      <h1 id="hero-title"><span class="highlight">Simfoni</span> Waktu: Ruang VIP Geng Sekolah</h1>
+
+      <div class="quote-card-wrapper" role="region" aria-label="Kartu sambutan">
+        <article class="quote-card">
+          <p>
+            Selamat datang, <strong>Azriel</strong>, <strong>Fikri</strong>, <strong>Abid</strong>, dan <strong>Arfa</strong>. 
+            Tempat ini adalah ruang interaktif premium — sentuh tombol <em>Masuk Ruang VIP</em> untuk memulai permainan persahabatan yang dipersonalisasi.
+          </p>
+          <div style="margin-top:12px">
+            <a href="#karakter" class="karakter-link">Lihat karakter</a>
+          </div>
+
+          <div class="actions" style="margin-top:18px">
+            <button class="btn" id="start-btn">Mulai Permainan</button>
+            <a href="#rules" class="btn secondary">Aturan Singkat</a>
+          </div>
+
+        </article>
+      </div>
+
+      <div class="music-widget" role="region" aria-label="Visualisasi musik">
+        <div class="bars" id="visualizer">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+        <div class="audio-label">Ambient • VIP Lounge</div>
+      </div>
+
+      <footer>
+        Dibuat dengan neon oleh Geng Sekolah • Hak akses VIP
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    /* ==========================================================================
+       SCRIPT INTERAKSI:
+       - Custom cursor (desktop)
+       - Lightweight matrix canvas (mobile-friendly)
+       - Simulated music visualizer (lightweight, no audio input required)
+       - Basic keyboard focus behavior
+       ========================================================================== */
+
+    (function(){
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // --- custom cursor (desktop only) ---
+      if(!isTouch && window.innerWidth >= 769){
+        document.body.classList.add('cursor-active');
+        const cursor = document.querySelector('.custom-cursor');
+        const outline = document.querySelector('.custom-cursor-outline');
+
+        let lastX = 0, lastY = 0;
+        window.addEventListener('mousemove', (e) => {
+          const x = e.clientX, y = e.clientY;
+          cursor.style.transform = `translate(${x}px, ${y}px) translate(-50%,-50%)`;
+          outline.style.transform = `translate(${x}px, ${y}px) translate(-50%,-50%)`;
+          lastX = x; lastY = y;
+        }, {passive:true});
+
+        // hover state toggles for interactive elements
+        const interactive = 'a,button,input,[role="button"],.btn,.karakter-link';
+        document.addEventListener('pointerover', e => {
+          if(e.target.closest && e.target.closest(interactive)) document.body.classList.add('hovering');
+        });
+        document.addEventListener('pointerout', e => {
+          if(e.target.closest && e.target.closest(interactive)) document.body.classList.remove('hovering');
+        });
+      }
+
+      // --- keyboard focus: ensure keyboard users can tab to the primary button quickly ---
+      const enterBtn = document.getElementById('btn-enter');
+      enterBtn.addEventListener('click', () => {
+        document.getElementById('start-btn').focus();
+      });
+
+      // --- lightweight matrix canvas ---
+      const canvas = document.getElementById('mobile-matrix-canvas');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      let cols = [], rafId = null;
+
+      function setupCanvas(){
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap DPR to reduce memory
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        ctx.globalCompositeOperation = 'source-over';
+
+        // columns configuration (reduced on small devices)
+        const columnWidth = 12; // visual spacing
+        const count = Math.ceil(window.innerWidth / columnWidth);
+        cols = new Array(count).fill(0).map(()=>({
+          x: Math.random(),
+          v: (0.6 + Math.random()*1.2), // speed multiplier
+          y: Math.random() * -100
+        }));
+      }
+
+      function drawMatrix(){
+        if(prefersReduced) return;
+        // clear with a soft fade
+        ctx.fillStyle = 'rgba(1,2,4,0.12)';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
+
+        // draw soft neon vertical streaks
+        const baseColor1 = 'rgba(0,242,254,0.12)';
+        const baseColor2 = 'rgba(124,58,237,0.09)';
+        cols.forEach((c, i)=>{
+          const cx = (i / cols.length) * w + (Math.sin(i + performance.now()/800) * 6);
+          c.y += 1.2 * c.v;
+          if(c.y > h + 60) c.y = -40 - Math.random()*120;
+
+          const grd = ctx.createLinearGradient(cx-8, c.y-40, cx+8, c.y+40);
+          grd.addColorStop(0, baseColor2);
+          grd.addColorStop(0.5, baseColor1);
+          grd.addColorStop(1, 'transparent');
+
+          ctx.beginPath();
+          ctx.fillStyle = grd;
+          ctx.roundRect ? ctx.roundRect(cx-6, c.y-40, 12, 80, 8) : null;
+          ctx.fillRect(cx-6, c.y-40, 12, 80);
+          ctx.closePath();
+        });
+      }
+
+      // polyfill roundRect (not required)
+      if(!CanvasRenderingContext2D.prototype.roundRect){
+        CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+          if(w<2*r) r=w/2;
+          if(h<2*r) r=h/2;
+          this.beginPath();
+          this.moveTo(x+r,y);
+          this.arcTo(x+w,y,x+w,y+h,r);
+          this.arcTo(x+w,y+h,x,y+h,r);
+          this.arcTo(x,y+h,x,y,r);
+          this.arcTo(x,y,x+w,y,r);
+          this.closePath();
+          return this;
+        };
+      }
+
+      function loop(){
+        drawMatrix();
+        rafId = requestAnimationFrame(loop);
+      }
+
+      // initialize matrix only if not reduced motion
+      if(!prefersReduced){
+        setupCanvas();
+        window.addEventListener('resize', () => { cancelAnimationFrame(rafId); setupCanvas(); rafId = requestAnimationFrame(loop); }, {passive:true});
+        rafId = requestAnimationFrame(loop);
+      } else {
+        // hide canvas to avoid cost
+        canvas.style.display = 'none';
+      }
+
+      // --- simulated music visualizer (lightweight) ---
+      const bars = Array.from(document.querySelectorAll('#visualizer .bar'));
+      let animInterval = null;
+      function startVisualizer(){
+        if(prefersReduced) return;
+        if(animInterval) clearInterval(animInterval);
+        animInterval = setInterval(()=> {
+          bars.forEach((b, i) => {
+            // generate per-bar pseudo-random heights, biasing center bars slightly
+            const t = Date.now()/600;
+            const noise = (Math.sin(t*(0.7 + i*0.02) + i) + 1)/2;
+            const damp = 8 + Math.round(noise * (28 - Math.abs(i - bars.length/2)));
+            b.style.height = damp + 'px';
+          });
+        }, 110);
+      }
+      function stopVisualizer(){ if(animInterval) clearInterval(animInterval); }
+
+      startVisualizer();
+
+      // stop heavy animations when page hidden
+      document.addEventListener('visibilitychange', () => {
+        if(document.hidden){ cancelAnimationFrame(rafId); stopVisualizer(); }
+        else { if(!prefersReduced){ rafId = requestAnimationFrame(loop); startVisualizer(); } }
+      });
+
+      // --- small UX: keyboard for Start -->
+      const startBtn = document.getElementById('start-btn');
+      startBtn.addEventListener('click', () => {
+        startBtn.setAttribute('aria-pressed','true');
+        // sample interaction: flash xp bar, show a toast (simple)
+        const xp = document.querySelector('.xp-bar');
+        xp.style.width = Math.min(100, (parseInt(xp.style.width) || 40) + 12) + '%';
+        startBtn.textContent = 'Memulai...';
+        setTimeout(()=> startBtn.textContent = 'Mulai Permainan', 1200);
+      });
+
+      // ensure focus outlines for keyboard users
+      document.body.addEventListener('keydown', (e) => {
+        if(e.key === 'Tab') document.documentElement.classList.add('show-focus');
+      });
+
+      // tidy up on unload
+      window.addEventListener('beforeunload', () => {
+        cancelAnimationFrame(rafId);
+        stopVisualizer();
+      });
+    })();
+  </script>
+</body>
+</html>
